@@ -1,15 +1,10 @@
-import { useAnecdotes, useAnecdoteActions, useFilter } from "../store"
+import { useAnecdotes, useAnecdoteActions } from "../store"
 import { useSetNotif } from "../notifStore"
 
 const AnecdoteList = () => {
-    const anecdotes = useAnecdotes()
+    const anecdotesSorted = useAnecdotes()
     const { vote, remove } = useAnecdoteActions()
-    const filter = useFilter()
     const setNotif = useSetNotif()
-
-    const anecdotesSorted = anecdotes
-        .filter(a => a.content.toLowerCase().includes(filter.toLowerCase()))
-        .toSorted((a, b) => b.votes - a.votes)
 
     const voteHandler = async (anecdote) => {
         await vote(anecdote.id)

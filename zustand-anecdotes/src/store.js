@@ -1,64 +1,37 @@
 import { create } from 'zustand'
+import anecService from './services/anecdotes'
 
-const baseUrl = 'http://localhost:3001/anecdotes'
-
-
-const useAnecdoteStore = create((set) => ({
+const useAnecdoteStore = create((set, get) => ({
   anecdotes: [],
   filter: '',
   actions: {
     initialize: async () => {
-      const response = await fetch(baseUrl)
-      const anecdotes = await response.json()
+      const anecdotes = await anecService.getAll()
       set({ anecdotes })
     },
     vote: async (id) => {
-      const response = await fetch(`${baseUrl}/${id}`)
-      const anec = await response.json()
+      const anec = get().anecdotes.find((a) => a.id === id)
 
       const updatedAnec = { 
         ...anec, 
         votes: anec.votes + 1 
       }
 
-      const updateResponse = await fetch(`${baseUrl}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedAnec)
-      })
-
-      const savedAnec = await updateResponse.json()
+      const savedAnec = await anecService.update(id, updatedAnec)
 
       set((state) => ({
       anecdotes: state.anecdotes.map((a) => a.id === id ? savedAnec : a)
     }))},
     
     create: async (content) => {
-      const newAnec = {
-        content,
-        votes: 0,
-      }
-
-      const response = await fetch(baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newAnec)
-      })
-      
-      const savedAnec = await response.json()
+      const savedAnec = await anecService.create(content)
 
       set((state) => ({
       anecdotes: state.anecdotes.concat(savedAnec)
       }))},
     
     remove: async (id) => {
-      await fetch(`${baseUrl}/${id}`, {
-        method: 'DELETE',
-      })
+      await anecService.remove
 
       set((state) => ({
         anecdotes: state.anecdotes.filter((a) => a.id !== id)
@@ -68,6 +41,16 @@ const useAnecdoteStore = create((set) => ({
   },
 }))
 
-export const useAnecdotes = () => useAnecdoteStore((state) => state.anecdotes)
+export const useAnecdotes = () => {
+  const anecdotes = useAnecdoteStore((state) => state.anecdotes)
+  const filter = useAnecdoteStore((state) => state.filter)
+
+  return anecdotes
+    .filter(a => a.content.toLowerCase().includes(filter.toLowerCase()))
+    .toSorted((a, b) => b.votes - a.votes)
+}
+  
 export const useAnecdoteActions = () => useAnecdoteStore((state) => state.actions)
 export const useFilter = () => useAnecdoteStore((state) => state.filter)
+
+export default useAnecdoteStore
