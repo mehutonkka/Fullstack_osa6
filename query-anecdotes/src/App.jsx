@@ -1,11 +1,18 @@
 import AnecdoteForm from './components/AnecdoteForm'
 import Notification from './components/Notification'
 import { useAnecdotes, useUpdateAnecdote } from './hooks/useAnecdotes'
+import { useNotify } from './NotificationContext'
 
 const App = () => {
+  const setNotif = useNotify()
+
   const result = useAnecdotes(  )
 
-  const updateAnecdoteMutation = useUpdateAnecdote()
+  const updateAnecdoteMutation = useUpdateAnecdote({
+    onSuccess: (updatedAnecdote) => {
+      setNotif(`anecdote '${updatedAnecdote.content}' voted`)
+    }
+  })
 
   if (result.isPending) {
     return <div>loading...</div>

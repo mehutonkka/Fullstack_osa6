@@ -10,7 +10,7 @@ export const useAnecdotes = () => {
     })
 }
 
-export const useCreateAnecdote = () => {
+export const useCreateAnecdote = (options = {}) => {
     const queryClient = useQueryClient()
 
     return useMutation({
@@ -18,11 +18,20 @@ export const useCreateAnecdote = () => {
         onSuccess: (newAnecdote) => {
             const anecdotes = queryClient.getQueryData(['anecdotes'])
             queryClient.setQueryData(['anecdotes'], anecdotes.concat(newAnecdote))
+
+            if (options.onSuccess) {
+                options.onSuccess(newAnecdote)
+            }
+        },
+        onError: () => {
+            if (options.onError) {
+                options.onError()
+            }
         }
     })
 }
 
-export const useUpdateAnecdote = () => {
+export const useUpdateAnecdote = (options = {}) => {
     const queryClient = useQueryClient()
 
     return useMutation({
@@ -36,6 +45,10 @@ export const useUpdateAnecdote = () => {
                 anecdote.id !== updatedAnecdote.id ? anecdote : updatedAnecdote
                 )
             )
+
+            if (options.onSuccess) {
+                options.onSuccess(updatedAnecdote)
+            }
         }
     })
 }

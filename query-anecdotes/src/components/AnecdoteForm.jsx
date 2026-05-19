@@ -1,8 +1,18 @@
 import { useCreateAnecdote } from "../hooks/useAnecdotes"
+import { useNotify } from "../NotificationContext"
 
 
 const AnecdoteForm = () => {
-  const createAnecdoteMutation = useCreateAnecdote()
+  const setNotif = useNotify()
+
+  const createAnecdoteMutation = useCreateAnecdote({
+    onSuccess: (newAnecdote) => {
+      setNotif(`anecdote '${newAnecdote.content}' created`)
+    },
+    onError: () => {
+      setNotif('too short anecdote, must be 5 characters or more')
+    }
+  })
   
   const onCreate = (event) => {
     event.preventDefault()
